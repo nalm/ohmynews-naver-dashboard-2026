@@ -45,6 +45,13 @@ function getPeakPoint(series = []) {
   return observed.reduce((peak, item) => (item.count > peak.count ? item : peak));
 }
 
+
+function getNaverLink(article) {
+  if (article.naverUrl) return article.naverUrl;
+  if (!article.title) return "";
+  return "https://search.naver.com/search.naver?where=news&query=" + encodeURIComponent(article.title);
+}
+
 function Sparkline({ series = [], tone = "flat", compact = false }) {
   const samples = series.map((item, index) => ({
     index,
@@ -95,6 +102,70 @@ function Sparkline({ series = [], tone = "flat", compact = false }) {
       ))}
       {points.filter((point) => point.y != null).map((point) => (
         <circle key={"point-" + point.index} cx={point.x} cy={point.y} r="2.2" />
+      ))}
+    </svg>
+  );
+}
+
+
+function DetailedLineChart({ series = [] }) {
+  const width = 720;
+  const height = 176;
+  const padding = { top: 18, right: 18, bottom: 18, left: 18 };
+  const samples = series.map((item, index) => ({
+    index,
+    value: typeof item.count === "number" && Number.isFinite(item.count) ? item.count : null
+  }));
+  const observed = samples.filter((sample) => sample.value != null);
+
+  if (!observed.length) {
+    return <div className="detailed-line-empty">표시할 조회수 데이터가 없습니다.</div>;
+  }
+
+  const min = Math.min(...observed.map((sample) => sample.value));
+  const max = Math.max(...observed.map((sample) => sample.value));
+  const spread = Math.max(1, max - min);
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+  const denominator = Math.max(1, samples.length - 1);
+  const points = samples.map((sample) => ({
+    ...sample,
+    x: padding.left + (sample.index / denominator) * chartWidth,
+    y: sample.value == null ? null : padding.top + chartHeight - ((sample.value - min) / spread) * chartHeight
+  }));
+
+  const segments = [];
+  let activeSegment = [];
+  for (const point of points) {
+    if (point.y == null) {
+      if (activeSegment.length) segments.push(activeSegment);
+      activeSegment = [];
+      continue;
+    }
+    activeSegment.push(point);
+  }
+  if (activeSegment.length) segments.push(activeSegment);
+
+  return (
+    <svg className="detailed-line-chart" viewBox={"0 0 " + width + " " + height} role="img" aria-label="최근 8시간 조회수 라인 차트">
+      {[0.2, 0.5, 0.8].map((ratio) => (
+        <line
+          key={ratio}
+          x1={padding.left}
+          x2={width - padding.right}
+          y1={padding.top + chartHeight * ratio}
+          y2={padding.top + chartHeight * ratio}
+        />
+      ))}
+      {segments.map((segment, index) => (
+        <path
+          key={"segment-" + index}
+          d={"M " + segment.map((point) => point.x + " " + point.y).join(" L ")}
+          fill="none"
+        />
+      ))}
+      {points.filter((point) => point.y != null).map((point) => (
+        <circle key={"point-" + point.index} cx={point.x} cy={point.y} r="4.2" />
       ))}
     </svg>
   );
@@ -231,6 +302,9 @@ function ArticleDetailLayer({ article, onClose }) {
 
   if (!article) return null;
 
+  const naverLink = getNaverLink(article);
+  const hasDirectNaverLink = Boolean(article.naverUrl);
+
   return (
     <div
       className="detail-overlay"
@@ -267,7 +341,7 @@ function ArticleDetailLayer({ article, onClose }) {
             <span>8시간 조회 추이</span>
             <Sparkline series={article.series} tone={article.trend} />
           </div>
-          <div>
+          <div className="decision-metric">
             <span>편집 제안</span>
             <strong>{article.recommendationLabel}</strong>
           </div>
@@ -278,7 +352,7 @@ function ArticleDetailLayer({ article, onClose }) {
             <h3>최근 8시간 조회 추이</h3>
             <span>네이버 VIEW 랭킹 기준</span>
           </div>
-          <MiniBars series={article.series || []} />
+          <DetailedLineChart series={article.series || []} />
           <div className="layer-series-list">
             {(article.series || []).map((item) => (
               <div key={item.windowKey}>
@@ -302,10 +376,10 @@ function ArticleDetailLayer({ article, onClose }) {
               오마이뉴스 원문
             </a>
           ) : null}
-          {article.naverUrl ? (
-            <a href={article.naverUrl} target="_blank" rel="noreferrer">
+          {naverLink ? (
+            <a href={naverLink} target="_blank" rel="noreferrer">
               <ExternalLink size={16} />
-              네이버 원문
+              {hasDirectNaverLink ? "네이버 원문" : "네이버 뉴스 검색"}
             </a>
           ) : null}
         </div>
