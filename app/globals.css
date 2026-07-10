@@ -1154,3 +1154,32 @@ button { cursor: pointer; }
   line-height: 1.15;
   white-space: nowrap;
 }
+
+
+/* Top 50 raise-candidate emphasis */
+.ranking-row.is-raise-candidate {
+  background: #effaf4;
+  box-shadow: inset 4px 0 0 #16a66d;
+}
+
+.ranking-row.is-raise-candidate:hover {
+  background: #e3f8ed;
+}
+
+.ranking-row.is-raise-candidate .ranking-number {
+  color: #10945f;
+}
+
+.raise-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 5px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: #13a568;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.1;
+  vertical-align: 1px;
+}
