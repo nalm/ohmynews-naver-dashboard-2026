@@ -379,6 +379,13 @@ export default function Dashboard({ authReady, user }) {
       ) : null}
 
       {error ? <div className="error-box">{error}</div> : null}
+      {payload?.warnings?.length ? (
+        <div className="source-warning">
+          {payload.warnings.map((warning) => (
+            <p key={warning}>{warning}</p>
+          ))}
+        </div>
+      ) : null}
 
       <section className="three-column-workspace">
         <section className="column-panel main-column">
@@ -425,7 +432,7 @@ export default function Dashboard({ authReady, user }) {
               <p className="eyebrow">새로고침 기준</p>
               <h2>네이버 VIEW Top 50</h2>
             </div>
-            <span>언론사별 기사 랭킹</span>
+            <span>{payload?.rankingArticleCount ? payload.rankingArticleCount + "건 수신" : "언론사별 기사 랭킹"}</span>
           </div>
           <div className="ranking-column-labels">
             <span>순위</span>
