@@ -819,3 +819,95 @@ button { cursor: pointer; }
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+
+/* Sparkline-first editorial metrics */
+.article-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.article-row .article-meta {
+  align-items: center;
+}
+
+.article-row .article-meta > .sparkline {
+  margin-left: auto;
+}
+
+.sparkline {
+  display: inline-block;
+  width: 76px;
+  height: 26px;
+  flex: 0 0 auto;
+  overflow: visible;
+  vertical-align: middle;
+}
+
+.sparkline polyline {
+  stroke: #3768d8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.sparkline circle {
+  fill: #3768d8;
+}
+
+.sparkline.is-compact {
+  width: 64px;
+  height: 22px;
+}
+
+.sparkline.is-empty {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  background: #eef1f6;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ranking-metrics {
+  align-items: end;
+}
+
+.ranking-metrics .sparkline {
+  width: 78px;
+}
+
+.candidate-card {
+  grid-template-columns: 34px minmax(0, 1fr) 62px;
+}
+
+.candidate-card > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.candidate-card > .sparkline {
+  align-self: center;
+  width: 62px;
+}
+
+.sparkline-metric {
+  align-content: start;
+}
+
+.sparkline-metric .sparkline {
+  width: 100%;
+  height: 30px;
+  margin-top: 2px;
+}
+
+@media (max-width: 760px) {
+  .candidate-card {
+    grid-template-columns: 30px minmax(0, 1fr) 58px;
+  }
+
+  .sparkline,
+  .ranking-metrics .sparkline {
+    width: 64px;
+  }
+}
