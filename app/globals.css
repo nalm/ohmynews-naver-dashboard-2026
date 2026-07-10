@@ -1124,3 +1124,33 @@ button { cursor: pointer; }
     height: 158px;
   }
 }
+
+
+/* Saved snapshot view and compact editorial status */
+.trend-pill,
+.detail-layer-head .trend-pill {
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.ranking-highest {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: center;
+}
+
+.ranking-highest strong {
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.ranking-highest small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
