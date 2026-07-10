@@ -436,7 +436,6 @@ export default function Dashboard({ authReady, user }) {
     <main className="dashboard-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">오마이뉴스 내부 편집 도구</p>
           <h1>네이버 조회 추세 대시보드</h1>
         </div>
         <div className="topbar-actions">
