@@ -1,15 +1,15 @@
-﻿# Deployment Notes
+# Deployment Notes
 
 ## Production URL
 
-https://ohmynews-naver-dashboard.vercel.app
+https://ohmynews-naver-dashboard-2026.vercel.app
 
 The current production deployment is intentionally locked until Google OAuth variables are configured. The page should show `인증 설정 필요`, and `/api/dashboard` should return `503` with `auth_not_configured`.
 
 ## Vercel Project
 
 - Scope: `nalms-projects`
-- Project: `ohmynews-naver-dashboard`
+- Project: `ohmynews-naver-dashboard-2026`
 - Framework override: `vercel.json` uses `@vercel/next` because the project was initially detected as Express.
 
 ## Required Environment Variables
@@ -17,7 +17,7 @@ The current production deployment is intentionally locked until Google OAuth var
 Set these in Vercel Project Settings.
 
 ```text
-AUTH_URL=https://ohmynews-naver-dashboard.vercel.app
+AUTH_URL=https://ohmynews-naver-dashboard-2026.vercel.app
 AUTH_SECRET=<long random secret>
 GOOGLE_CLIENT_ID=<google oauth client id>
 GOOGLE_CLIENT_SECRET=<google oauth client secret>
@@ -35,7 +35,7 @@ POSTGRES_URL=<neon or postgres connection string>
 Add this redirect URI in Google Cloud Console:
 
 ```text
-https://ohmynews-naver-dashboard.vercel.app/api/auth/callback/google
+https://ohmynews-naver-dashboard-2026.vercel.app/api/auth/callback/google
 ```
 
 ## Thirty-Minute Collection
