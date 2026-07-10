@@ -248,16 +248,19 @@ function groupMainArticles(articles) {
   return groups;
 }
 
-function RankingRow({ article, onSelect }) {
+function RankingRow({ article, onSelect, featured = false }) {
   const peak = getPeakPoint(article.series);
   const totalViews = getTotalViews(article.series);
 
   return (
-    <button className="ranking-row" type="button" onClick={() => onSelect(article)}>
+    <button className={"ranking-row" + (featured ? " is-raise-candidate" : "")} type="button" onClick={() => onSelect(article)}>
       <span className="ranking-number">{article.currentRank || "-"}</span>
       <span className="ranking-copy">
         <strong>{article.title}</strong>
-        <small>{article.placement === "main" ? "오마이뉴스 메인 노출 중" : "언론사별 기사 랭킹"}</small>
+        <small>
+          {featured ? <b className="raise-badge">올릴 후보</b> : null}
+          {article.placement === "main" ? "오마이뉴스 메인 노출 중" : "언론사별 기사 랭킹"}
+        </small>
       </span>
       <span className="ranking-peak">{peak?.label || "-"}</span>
       <span className="ranking-highest">
@@ -427,6 +430,8 @@ export default function Dashboard({ authReady, user }) {
     loadDashboard(false);
   }, []);
 
+  const raiseCandidateIds = new Set((payload?.candidateGroups?.raise || []).map((article) => article.id));
+
   return (
     <main className="dashboard-shell">
       <header className="topbar">
@@ -530,7 +535,7 @@ export default function Dashboard({ authReady, user }) {
           </div>
           <div className="ranking-list">
             {payload?.topRankedArticles?.slice(0, 50).map((article) => (
-              <RankingRow key={article.id} article={article} onSelect={setSelectedArticle} />
+              <RankingRow key={article.id} article={article} featured={raiseCandidateIds.has(article.id)} onSelect={setSelectedArticle} />
             ))}
           </div>
         </section>
