@@ -57,7 +57,8 @@ function MiniBars({ series }) {
       {series.map((item) => (
         <span
           key={item.windowKey}
-          style={{ height: `${Math.max(10, ((item.count || 0) / max) * 100)}%` }}
+          className={item.count == null ? "is-empty" : ""}
+          style={{ height: item.count == null ? "8%" : Math.max(10, ((item.count || 0) / max) * 100) + "%" }}
         />
       ))}
     </div>
@@ -85,6 +86,25 @@ function ArticleRow({ article, selected, onSelect }) {
       </span>
     </button>
   );
+}
+
+function groupMainArticles(articles) {
+  const groups = [];
+
+  for (const article of articles) {
+    const previous = groups.at(-1);
+    if (!previous || previous.code !== article.componentCode) {
+      groups.push({
+        code: article.componentCode || "other",
+        label: article.componentLabel || "모바일 메인",
+        articles: [article]
+      });
+    } else {
+      previous.articles.push(article);
+    }
+  }
+
+  return groups;
 }
 
 function RecommendationRow({ article, onSelect }) {
@@ -292,7 +312,7 @@ function ArticleDetailLayer({ article, onClose }) {
               <div key={item.windowKey}>
                 <span>{item.label}</span>
                 <strong>{formatNumber(item.count)}</strong>
-                <small>{item.rank}위</small>
+                <small>{item.rank ? item.rank + "위" : "-"}</small>
               </div>
             ))}
           </div>
@@ -410,13 +430,21 @@ export default function Dashboard({ authReady, user }) {
               </div>
             ) : (
               <div className="article-list">
-                {payload?.mainArticles?.map((article) => (
-                  <ArticleRow
-                    key={article.id}
-                    article={article}
-                    selected={selectedArticle?.id === article.id}
-                    onSelect={setSelectedArticle}
-                  />
+                {groupMainArticles(payload?.mainArticles || []).map((group, groupIndex) => (
+                  <section className="main-section-group" key={group.code + groupIndex}>
+                    <div className="main-section-label">
+                      <span>{group.label}</span>
+                      <small>{group.articles.length}건</small>
+                    </div>
+                    {group.articles.map((article) => (
+                      <ArticleRow
+                        key={article.id}
+                        article={article}
+                        selected={selectedArticle?.id === article.id}
+                        onSelect={setSelectedArticle}
+                      />
+                    ))}
+                  </section>
                 ))}
                 <div className="special-boundary">스페셜 콘텐츠 위까지 수집</div>
               </div>
