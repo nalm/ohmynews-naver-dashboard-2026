@@ -37,6 +37,45 @@ function formatPercent(value) {
   return `${sign}${value.toFixed(1)}%`;
 }
 
+
+function Sparkline({ series = [], compact = false }) {
+  const values = series.map((item) => (typeof item.count === "number" ? item.count : null));
+  const observed = values.filter((value) => value != null);
+
+  if (!observed.length) {
+    return <span className={"sparkline is-empty" + (compact ? " is-compact" : "")}>-</span>;
+  }
+
+  const fallback = observed[0];
+  const normalized = values.map((value) => (value == null ? fallback : value));
+  const min = Math.min(...normalized);
+  const max = Math.max(...normalized);
+  const spread = Math.max(1, max - min);
+  const denominator = Math.max(1, normalized.length - 1);
+  const points = normalized
+    .map((value, index) => {
+      const x = (index / denominator) * 100;
+      const y = 28 - ((value - min) / spread) * 24;
+      return x + "," + y;
+    })
+    .join(" ");
+  const lastValue = normalized.at(-1);
+  const lastY = 28 - ((lastValue - min) / spread) * 24;
+
+  return (
+    <svg
+      className={"sparkline" + (compact ? " is-compact" : "")}
+      viewBox="0 0 100 32"
+      role="img"
+      aria-label="최근 8시간 조회 추이"
+      preserveAspectRatio="none"
+    >
+      <polyline points={points} fill="none" />
+      <circle cx="100" cy={lastY} r="2.8" />
+    </svg>
+  );
+}
+
 function rankLabel(article) {
   if (!article.currentRank) return "랭킹 밖";
   return `네이버 ${article.currentRank}위`;
@@ -72,7 +111,6 @@ function ArticleRow({ article, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(article)}
     >
-      <span className="article-position">{article.position || "-"}</span>
       <span className="article-body">
         <span className="article-title">{article.title}</span>
         <span className="article-meta">
@@ -81,7 +119,7 @@ function ArticleRow({ article, selected, onSelect }) {
             {article.trendLabel}
           </span>
           <span>{rankLabel(article)}</span>
-          <span>{formatPercent(article.growthRate)}</span>
+          <Sparkline series={article.series} compact />
         </span>
       </span>
     </button>
@@ -210,9 +248,7 @@ function RankingRow({ article, onSelect }) {
       </span>
       <span className="ranking-metrics">
         <strong>{formatNumber(article.latestCount)}</strong>
-        <small className={article.growthRate > 0 ? "positive" : article.growthRate < 0 ? "negative" : ""}>
-          {formatPercent(article.growthRate)}
-        </small>
+        <Sparkline series={article.series} compact />
       </span>
     </button>
   );
@@ -235,8 +271,9 @@ function CandidateGroup({ tone, title, caption, articles, onSelect }) {
               <span className="candidate-rank">{article.currentRank ? article.currentRank + "위" : "밖"}</span>
               <span>
                 <strong>{article.title}</strong>
-                <small>{article.recommendationLabel} · {formatPercent(article.growthRate)}</small>
+                <small>{article.recommendationLabel} · {formatNumber(article.latestCount)} 조회</small>
               </span>
+              <Sparkline series={article.series} compact />
             </button>
           ))}
         </div>
@@ -291,9 +328,9 @@ function ArticleDetailLayer({ article, onClose }) {
             <span>최근 조회</span>
             <strong>{formatNumber(article.latestCount)}</strong>
           </div>
-          <div>
-            <span>8시간 변화</span>
-            <strong>{formatPercent(article.growthRate)}</strong>
+          <div className="sparkline-metric">
+            <span>8시간 조회 추이</span>
+            <Sparkline series={article.series} />
           </div>
           <div>
             <span>편집 제안</span>
@@ -401,7 +438,6 @@ export default function Dashboard({ authReady, user }) {
             <Clock3 size={15} />
             {new Date(payload.collectedAt).toLocaleString("ko-KR")}
           </span>
-          <span>{payload.mode === "live" ? "실데이터" : "데모 데이터"}</span>
           <span>{payload.sourceUrl}</span>
           {user?.email ? <span>{user.email}</span> : null}
         </section>
@@ -419,10 +455,6 @@ export default function Dashboard({ authReady, user }) {
             <span>{payload?.mainArticles?.length || 0}건</span>
           </div>
           <div className="phone-frame refreshed-phone">
-            <div className="phone-header">
-              <strong>오마이뉴스</strong>
-              <span>모바일 메인</span>
-            </div>
             {isLoading && !payload ? (
               <div className="loading-state">
                 <Loader2 className="spin" />
@@ -456,9 +488,9 @@ export default function Dashboard({ authReady, user }) {
           <div className="column-head">
             <div>
               <p className="eyebrow">새로고침 기준</p>
-              <h2>네이버 VIEW Top 50</h2>
+              <h2>네이버 VIEW 상위 5</h2>
             </div>
-            <span>순위 · 조회 · 변화</span>
+            <span>순위 · 조회 추이</span>
           </div>
           <div className="ranking-column-labels">
             <span>순위</span>
@@ -466,7 +498,7 @@ export default function Dashboard({ authReady, user }) {
             <span>조회 / 변화</span>
           </div>
           <div className="ranking-list">
-            {payload?.topRankedArticles?.slice(0, 50).map((article) => (
+            {payload?.topRankedArticles?.slice(0, 5).map((article) => (
               <RankingRow key={article.id} article={article} onSelect={setSelectedArticle} />
             ))}
           </div>
