@@ -263,10 +263,9 @@ function RankingRow({ article, onSelect, featured = false }) {
         </small>
       </span>
       <span className="ranking-peak">{peak?.label || "-"}</span>
-      <span className="ranking-highest">
-        <strong>최고 {formatNumber(peak?.count)}</strong>
-        <small>8시간 누적 {formatNumber(totalViews)}</small>
-      </span>
+      <span className="ranking-latest">{formatNumber(article.latestCount)}</span>
+      <strong className="ranking-highest">{formatNumber(peak?.count)}</strong>
+      <span className="ranking-total">{formatNumber(totalViews)}</span>
       <span className={"ranking-status " + articleStatusClass(article)}>
         {trendIcons[article.trend] || trendIcons.flat}
       </span>
@@ -522,15 +521,17 @@ export default function Dashboard({ authReady, user }) {
               <p className="eyebrow">새로고침 기준</p>
               <h2>네이버 VIEW Top 50</h2>
             </div>
-            <span>{payload?.rankingArticleCount ? payload.rankingArticleCount + "건 수신 · 8시간 누적 조회" : "언론사별 기사 랭킹 · 8시간 누적 조회"}</span>
+            <span>{payload?.rankingArticleCount ? payload.rankingArticleCount + "건 수신" : "언론사별 기사 랭킹"}</span>
           </div>
           <div className="ranking-column-labels">
             <span>순위</span>
             <span>기사 제목</span>
             <span>피크 시간</span>
-            <span>조회</span>
+            <span>최신</span>
+            <span>최고</span>
+            <span>누적</span>
             <span>상태</span>
-            <span>8시간 추이</span>
+            <span>추이</span>
           </div>
           <div className="ranking-list">
             {payload?.topRankedArticles?.slice(0, 50).map((article) => (
