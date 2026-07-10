@@ -38,40 +38,64 @@ function formatPercent(value) {
 }
 
 
-function Sparkline({ series = [], compact = false }) {
-  const values = series.map((item) => (typeof item.count === "number" ? item.count : null));
-  const observed = values.filter((value) => value != null);
+
+function getPeakPoint(series = []) {
+  const observed = series.filter((item) => typeof item.count === "number" && Number.isFinite(item.count));
+  if (!observed.length) return null;
+  return observed.reduce((peak, item) => (item.count > peak.count ? item : peak));
+}
+
+function Sparkline({ series = [], tone = "flat", compact = false }) {
+  const samples = series.map((item, index) => ({
+    index,
+    value: typeof item.count === "number" && Number.isFinite(item.count) ? item.count : null
+  }));
+  const observed = samples.filter((sample) => sample.value != null);
 
   if (!observed.length) {
     return <span className={"sparkline is-empty" + (compact ? " is-compact" : "")}>-</span>;
   }
 
-  const fallback = observed[0];
-  const normalized = values.map((value) => (value == null ? fallback : value));
-  const min = Math.min(...normalized);
-  const max = Math.max(...normalized);
+  const min = Math.min(...observed.map((sample) => sample.value));
+  const max = Math.max(...observed.map((sample) => sample.value));
   const spread = Math.max(1, max - min);
-  const denominator = Math.max(1, normalized.length - 1);
-  const points = normalized
-    .map((value, index) => {
-      const x = (index / denominator) * 100;
-      const y = 28 - ((value - min) / spread) * 24;
-      return x + "," + y;
-    })
-    .join(" ");
-  const lastValue = normalized.at(-1);
-  const lastY = 28 - ((lastValue - min) / spread) * 24;
+  const denominator = Math.max(1, samples.length - 1);
+  const points = samples.map((sample) => ({
+    ...sample,
+    x: (sample.index / denominator) * 100,
+    y: sample.value == null ? null : 28 - ((sample.value - min) / spread) * 24
+  }));
+
+  const segments = [];
+  let activeSegment = [];
+  for (const point of points) {
+    if (point.y == null) {
+      if (activeSegment.length) segments.push(activeSegment);
+      activeSegment = [];
+      continue;
+    }
+    activeSegment.push(point);
+  }
+  if (activeSegment.length) segments.push(activeSegment);
 
   return (
     <svg
-      className={"sparkline" + (compact ? " is-compact" : "")}
+      className={"sparkline is-" + tone + (compact ? " is-compact" : "")}
       viewBox="0 0 100 32"
       role="img"
       aria-label="최근 8시간 조회 추이"
       preserveAspectRatio="none"
     >
-      <polyline points={points} fill="none" />
-      <circle cx="100" cy={lastY} r="2.8" />
+      {segments.map((segment, index) => (
+        <path
+          key={"segment-" + index}
+          d={"M " + segment.map((point) => point.x + " " + point.y).join(" L ")}
+          fill="none"
+        />
+      ))}
+      {points.filter((point) => point.y != null).map((point) => (
+        <circle key={"point-" + point.index} cx={point.x} cy={point.y} r="2.2" />
+      ))}
     </svg>
   );
 }
@@ -119,7 +143,7 @@ function ArticleRow({ article, selected, onSelect }) {
             {article.trendLabel}
           </span>
           <span>{rankLabel(article)}</span>
-          <Sparkline series={article.series} compact />
+          <Sparkline series={article.series} tone={article.trend} compact />
         </span>
       </span>
     </button>
@@ -146,17 +170,21 @@ function groupMainArticles(articles) {
 }
 
 function RankingRow({ article, onSelect }) {
+  const peak = getPeakPoint(article.series);
+
   return (
     <button className="ranking-row" type="button" onClick={() => onSelect(article)}>
       <span className="ranking-number">{article.currentRank || "-"}</span>
       <span className="ranking-copy">
         <strong>{article.title}</strong>
-        <small>{article.placement === "main" ? "오마이뉴스 메인 노출 중" : "네이버 VIEW 랭킹"}</small>
+        <small>{article.placement === "main" ? "오마이뉴스 메인 노출 중" : "언론사별 기사 랭킹"}</small>
       </span>
-      <span className="ranking-metrics">
-        <strong>{formatNumber(article.latestCount)}</strong>
-        <Sparkline series={article.series} compact />
+      <span className="ranking-peak">{peak?.label || "-"}</span>
+      <strong className="ranking-highest">{formatNumber(peak?.count)}</strong>
+      <span className={"ranking-status " + articleStatusClass(article)}>
+        {trendIcons[article.trend] || trendIcons.flat}
       </span>
+      <Sparkline series={article.series} tone={article.trend} compact />
     </button>
   );
 }
@@ -180,7 +208,7 @@ function CandidateGroup({ tone, title, caption, articles, onSelect }) {
                 <strong>{article.title}</strong>
                 <small>{article.recommendationLabel} · {formatNumber(article.latestCount)} 조회</small>
               </span>
-              <Sparkline series={article.series} compact />
+              <Sparkline series={article.series} tone={article.trend} compact />
             </button>
           ))}
         </div>
@@ -237,7 +265,7 @@ function ArticleDetailLayer({ article, onClose }) {
           </div>
           <div className="sparkline-metric">
             <span>8시간 조회 추이</span>
-            <Sparkline series={article.series} />
+            <Sparkline series={article.series} tone={article.trend} />
           </div>
           <div>
             <span>편집 제안</span>
@@ -395,17 +423,20 @@ export default function Dashboard({ authReady, user }) {
           <div className="column-head">
             <div>
               <p className="eyebrow">새로고침 기준</p>
-              <h2>네이버 VIEW 상위 5</h2>
+              <h2>네이버 VIEW Top 50</h2>
             </div>
-            <span>순위 · 조회 추이</span>
+            <span>언론사별 기사 랭킹</span>
           </div>
           <div className="ranking-column-labels">
             <span>순위</span>
-            <span>기사</span>
-            <span>조회 / 변화</span>
+            <span>기사 제목</span>
+            <span>피크 시간</span>
+            <span>최고 조회</span>
+            <span>상태</span>
+            <span>8시간 추이</span>
           </div>
           <div className="ranking-list">
-            {payload?.topRankedArticles?.slice(0, 5).map((article) => (
+            {payload?.topRankedArticles?.slice(0, 50).map((article) => (
               <RankingRow key={article.id} article={article} onSelect={setSelectedArticle} />
             ))}
           </div>
