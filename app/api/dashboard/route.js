@@ -29,6 +29,6 @@ export async function GET(request) {
     }
   }
 
-  const payload = await buildDashboardPayload({ persist: false });
+  const payload = await buildDashboardPayload({ persist: refresh });
   return Response.json(payload);
 }
