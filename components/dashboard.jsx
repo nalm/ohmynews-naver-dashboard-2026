@@ -134,7 +134,7 @@ function DetailPanel({ article }) {
           <strong>{formatNumber(article.latestCount)}</strong>
         </div>
         <div>
-          <span>3시간 증가율</span>
+          <span>8시간 증가율</span>
           <strong>{formatPercent(article.growthRate)}</strong>
         </div>
         <div>
@@ -144,7 +144,7 @@ function DetailPanel({ article }) {
       </div>
 
       <section className="detail-section">
-        <h3>최근 3시간</h3>
+        <h3>최근 8시간</h3>
         <MiniBars series={article.series} />
         <div className="series-list">
           {article.series.map((item) => (
@@ -204,7 +204,7 @@ export default function Dashboard({ authReady, user }) {
   }
 
   useEffect(() => {
-    loadDashboard(false);
+    loadDashboard(true);
   }, []);
 
   const allArticles = useMemo(() => {
