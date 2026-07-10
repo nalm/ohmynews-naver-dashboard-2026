@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  X,
   TrendingDown,
   TrendingUp
 } from "lucide-react";
@@ -179,9 +180,151 @@ function DetailPanel({ article }) {
   );
 }
 
+function RankingRow({ article, onSelect }) {
+  return (
+    <button className="ranking-row" type="button" onClick={() => onSelect(article)}>
+      <span className="ranking-number">{article.currentRank || "-"}</span>
+      <span className="ranking-copy">
+        <strong>{article.title}</strong>
+        <small>{article.placement === "main" ? "오마이뉴스 메인 노출 중" : "네이버 VIEW 랭킹"}</small>
+      </span>
+      <span className="ranking-metrics">
+        <strong>{formatNumber(article.latestCount)}</strong>
+        <small className={article.growthRate > 0 ? "positive" : article.growthRate < 0 ? "negative" : ""}>
+          {formatPercent(article.growthRate)}
+        </small>
+      </span>
+    </button>
+  );
+}
+
+function CandidateGroup({ tone, title, caption, articles, onSelect }) {
+  return (
+    <section className={"candidate-group " + tone}>
+      <div className="candidate-group-head">
+        <div>
+          <span>{title}</span>
+          <small>{caption}</small>
+        </div>
+        <strong>{articles.length}</strong>
+      </div>
+      {articles.length ? (
+        <div className="candidate-list">
+          {articles.map((article) => (
+            <button key={article.id} className="candidate-card" type="button" onClick={() => onSelect(article)}>
+              <span className="candidate-rank">{article.currentRank ? article.currentRank + "위" : "밖"}</span>
+              <span>
+                <strong>{article.title}</strong>
+                <small>{article.recommendationLabel} · {formatPercent(article.growthRate)}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-candidates">해당 기준의 기사가 없습니다.</p>
+      )}
+    </section>
+  );
+}
+
+function ArticleDetailLayer({ article, onClose }) {
+  useEffect(() => {
+    if (!article) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [article, onClose]);
+
+  if (!article) return null;
+
+  return (
+    <div
+      className="detail-overlay"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section className="detail-layer" role="dialog" aria-modal="true" aria-label="기사 상세">
+        <button className="detail-close" type="button" onClick={onClose} aria-label="상세 닫기">
+          <X size={20} />
+        </button>
+        <div className="detail-layer-head">
+          <div>
+            <p className="eyebrow">기사 상세</p>
+            <h2>{article.title}</h2>
+          </div>
+          <span className={"trend-pill " + articleStatusClass(article)}>
+            {trendIcons[article.trend] || trendIcons.flat}
+            {article.trendLabel}
+          </span>
+        </div>
+
+        <div className="layer-metric-grid">
+          <div>
+            <span>현재 순위</span>
+            <strong>{article.currentRank ? article.currentRank + "위" : "랭킹 밖"}</strong>
+          </div>
+          <div>
+            <span>최근 조회</span>
+            <strong>{formatNumber(article.latestCount)}</strong>
+          </div>
+          <div>
+            <span>8시간 변화</span>
+            <strong>{formatPercent(article.growthRate)}</strong>
+          </div>
+          <div>
+            <span>편집 제안</span>
+            <strong>{article.recommendationLabel}</strong>
+          </div>
+        </div>
+
+        <section className="layer-series">
+          <div className="layer-section-head">
+            <h3>최근 8시간 조회 추이</h3>
+            <span>네이버 VIEW 랭킹 기준</span>
+          </div>
+          <MiniBars series={article.series || []} />
+          <div className="layer-series-list">
+            {(article.series || []).map((item) => (
+              <div key={item.windowKey}>
+                <span>{item.label}</span>
+                <strong>{formatNumber(item.count)}</strong>
+                <small>{item.rank}위</small>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="layer-reason">
+          <h3>판단 근거</h3>
+          <p>{article.reason}</p>
+        </section>
+
+        <div className="layer-actions">
+          {article.url ? (
+            <a href={article.url} target="_blank" rel="noreferrer">
+              <ExternalLink size={16} />
+              오마이뉴스 원문
+            </a>
+          ) : null}
+          {article.naverUrl ? (
+            <a href={article.naverUrl} target="_blank" rel="noreferrer">
+              <ExternalLink size={16} />
+              네이버 원문
+            </a>
+          ) : null}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function Dashboard({ authReady, user }) {
   const [payload, setPayload] = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -195,7 +338,6 @@ export default function Dashboard({ authReady, user }) {
       if (!response.ok) throw new Error(`dashboard request failed: ${response.status}`);
       const data = await response.json();
       setPayload(data);
-      setSelectedId((current) => current || data.mainArticles?.[0]?.id || data.recommendations?.[0]?.id);
     } catch (err) {
       setError(err.message || "대시보드를 불러오지 못했습니다.");
     } finally {
@@ -206,17 +348,6 @@ export default function Dashboard({ authReady, user }) {
   useEffect(() => {
     loadDashboard(true);
   }, []);
-
-  const allArticles = useMemo(() => {
-    if (!payload) return [];
-    const byId = new Map();
-    [...payload.mainArticles, ...payload.externalCandidates].forEach((article) => {
-      byId.set(article.id, article);
-    });
-    return [...byId.values()];
-  }, [payload]);
-
-  const selected = allArticles.find((article) => article.id === selectedId) || allArticles[0];
 
   return (
     <main className="dashboard-shell">
@@ -258,9 +389,16 @@ export default function Dashboard({ authReady, user }) {
 
       {error ? <div className="error-box">{error}</div> : null}
 
-      <section className="workspace">
-        <div className="phone-panel">
-          <div className="phone-frame">
+      <section className="three-column-workspace">
+        <section className="column-panel main-column">
+          <div className="column-head">
+            <div>
+              <p className="eyebrow">현재 편집면</p>
+              <h2>오마이뉴스 모바일 메인</h2>
+            </div>
+            <span>{payload?.mainArticles?.length || 0}건</span>
+          </div>
+          <div className="phone-frame refreshed-phone">
             <div className="phone-header">
               <strong>오마이뉴스</strong>
               <span>모바일 메인</span>
@@ -272,41 +410,72 @@ export default function Dashboard({ authReady, user }) {
               </div>
             ) : (
               <div className="article-list">
-                {payload?.mainArticles.map((article) => (
+                {payload?.mainArticles?.map((article) => (
                   <ArticleRow
                     key={article.id}
                     article={article}
-                    selected={(selected?.id || selectedId) === article.id}
-                    onSelect={(item) => setSelectedId(item.id)}
+                    selected={selectedArticle?.id === article.id}
+                    onSelect={setSelectedArticle}
                   />
                 ))}
                 <div className="special-boundary">스페셜 콘텐츠 위까지 수집</div>
               </div>
             )}
           </div>
-        </div>
+        </section>
 
-        <div className="recommend-panel">
-          <div className="panel-head">
+        <section className="column-panel ranking-column">
+          <div className="column-head">
             <div>
-              <p className="eyebrow">추천 큐</p>
-              <h2>지금 올릴 만한 기사</h2>
+              <p className="eyebrow">새로고침 기준</p>
+              <h2>네이버 VIEW Top 50</h2>
             </div>
-            <Star size={18} />
+            <span>순위 · 조회 · 변화</span>
           </div>
-          <div className="recommend-list">
-            {payload?.recommendations.map((article) => (
-              <RecommendationRow
-                key={article.id}
-                article={article}
-                onSelect={(item) => setSelectedId(item.id)}
-              />
+          <div className="ranking-column-labels">
+            <span>순위</span>
+            <span>기사</span>
+            <span>조회 / 변화</span>
+          </div>
+          <div className="ranking-list">
+            {payload?.topRankedArticles?.slice(0, 50).map((article) => (
+              <RankingRow key={article.id} article={article} onSelect={setSelectedArticle} />
             ))}
           </div>
-        </div>
+        </section>
 
-        <DetailPanel article={selected} />
+        <aside className="candidate-column">
+          <div className="column-head">
+            <div>
+              <p className="eyebrow">편집 판단</p>
+              <h2>노출 조정 후보</h2>
+            </div>
+            <span>각 5건</span>
+          </div>
+          <CandidateGroup
+            tone="raise"
+            title="올릴 후보"
+            caption="8시간 추세 상승"
+            articles={payload?.candidateGroups?.raise || []}
+            onSelect={setSelectedArticle}
+          />
+          <CandidateGroup
+            tone="keep"
+            title="유지 후보"
+            caption="추세 안정 또는 신규"
+            articles={payload?.candidateGroups?.keep || []}
+            onSelect={setSelectedArticle}
+          />
+          <CandidateGroup
+            tone="lower"
+            title="내릴 후보"
+            caption="8시간 추세 하락"
+            articles={payload?.candidateGroups?.lower || []}
+            onSelect={setSelectedArticle}
+          />
+        </aside>
       </section>
+      <ArticleDetailLayer article={selectedArticle} onClose={() => setSelectedArticle(null)} />
     </main>
   );
 }
