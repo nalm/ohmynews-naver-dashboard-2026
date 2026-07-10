@@ -352,9 +352,9 @@ function ArticleDetailLayer({ article, onClose }) {
             <span>최근 조회</span>
             <strong>{formatNumber(article.latestCount)}</strong>
           </div>
-          <div className="sparkline-metric">
-            <span>8시간 조회 추이</span>
-            <Sparkline series={article.series} tone={article.trend} />
+          <div className="cumulative-metric">
+            <span>8시간 누적 조회수</span>
+            <strong>{formatNumber(getTotalViews(article.series))}</strong>
           </div>
           <div className="decision-metric">
             <span>편집 제안</span>
