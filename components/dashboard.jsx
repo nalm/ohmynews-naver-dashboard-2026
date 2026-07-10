@@ -52,6 +52,14 @@ function getNaverLink(article) {
   return "https://search.naver.com/search.naver?where=news&query=" + encodeURIComponent(article.title);
 }
 
+
+function getTotalViews(series = []) {
+  return series.reduce(
+    (total, item) => total + (typeof item.count === "number" && Number.isFinite(item.count) ? item.count : 0),
+    0
+  );
+}
+
 function Sparkline({ series = [], tone = "flat", compact = false }) {
   const samples = series.map((item, index) => ({
     index,
@@ -242,6 +250,7 @@ function groupMainArticles(articles) {
 
 function RankingRow({ article, onSelect }) {
   const peak = getPeakPoint(article.series);
+  const totalViews = getTotalViews(article.series);
 
   return (
     <button className="ranking-row" type="button" onClick={() => onSelect(article)}>
@@ -251,7 +260,10 @@ function RankingRow({ article, onSelect }) {
         <small>{article.placement === "main" ? "오마이뉴스 메인 노출 중" : "언론사별 기사 랭킹"}</small>
       </span>
       <span className="ranking-peak">{peak?.label || "-"}</span>
-      <strong className="ranking-highest">{formatNumber(peak?.count)}</strong>
+      <span className="ranking-highest">
+        <strong>최고 {formatNumber(peak?.count)}</strong>
+        <small>누적 {formatNumber(totalViews)}</small>
+      </span>
       <span className={"ranking-status " + articleStatusClass(article)}>
         {trendIcons[article.trend] || trendIcons.flat}
       </span>
@@ -412,7 +424,7 @@ export default function Dashboard({ authReady, user }) {
   }
 
   useEffect(() => {
-    loadDashboard(true);
+    loadDashboard(false);
   }, []);
 
   return (
@@ -512,7 +524,7 @@ export default function Dashboard({ authReady, user }) {
             <span>순위</span>
             <span>기사 제목</span>
             <span>피크 시간</span>
-            <span>최고 조회</span>
+            <span>조회</span>
             <span>상태</span>
             <span>8시간 추이</span>
           </div>
