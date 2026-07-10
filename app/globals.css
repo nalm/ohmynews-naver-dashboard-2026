@@ -1183,3 +1183,48 @@ button { cursor: pointer; }
   line-height: 1.1;
   vertical-align: 1px;
 }
+
+
+/* Compact dashboard header */
+.topbar {
+  min-height: 0;
+  padding: 13px 18px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: clamp(20px, 2.2vw, 27px);
+  line-height: 1.2;
+}
+
+.topbar-actions {
+  gap: 8px;
+}
+
+.topbar-actions button,
+.topbar-actions a {
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.status-strip {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    padding: 11px 14px;
+  }
+
+  .topbar h1 {
+    font-size: 19px;
+  }
+
+  .topbar-actions button,
+  .topbar-actions a {
+    min-height: 34px;
+    padding: 7px 9px;
+  }
+}
