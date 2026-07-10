@@ -1228,3 +1228,63 @@ button { cursor: pointer; }
     padding: 7px 9px;
   }
 }
+
+
+/* Top 50 latest, peak, and cumulative view columns */
+.ranking-column-labels,
+.ranking-row {
+  grid-template-columns: 32px minmax(104px, 1fr) 62px 54px 54px 54px 30px 78px;
+  gap: 6px;
+}
+
+.ranking-column-labels span:nth-child(4),
+.ranking-column-labels span:nth-child(5),
+.ranking-column-labels span:nth-child(6),
+.ranking-row .ranking-latest,
+.ranking-row .ranking-highest,
+.ranking-row .ranking-total {
+  text-align: center;
+}
+
+.ranking-latest,
+.ranking-highest,
+.ranking-total {
+  min-width: 0;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ranking-highest {
+  display: block;
+}
+
+@media (max-width: 1180px) {
+  .ranking-column-labels,
+  .ranking-row {
+    grid-template-columns: 30px minmax(86px, 1fr) 54px 48px 48px 48px 28px 68px;
+    gap: 5px;
+  }
+
+  .ranking-latest,
+  .ranking-highest,
+  .ranking-total {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .ranking-column-labels,
+  .ranking-row {
+    grid-template-columns: 28px minmax(0, 1fr) 48px 48px 48px 58px;
+  }
+
+  .ranking-column-labels span:nth-child(3),
+  .ranking-column-labels span:nth-child(7),
+  .ranking-row .ranking-peak,
+  .ranking-row .ranking-status {
+    display: none;
+  }
+}
