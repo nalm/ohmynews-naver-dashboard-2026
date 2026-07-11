@@ -433,8 +433,14 @@ export default function Dashboard({ authReady, user }) {
   return (
     <main className="dashboard-shell">
       <header className="topbar">
-        <div>
+        <div className="dashboard-title-line">
           <h1>네이버 조회 추세 대시보드</h1>
+          {payload ? (
+            <span className="collection-time">
+              <Clock3 size={14} />
+              수집 시각 {new Date(payload.collectedAt).toLocaleString("ko-KR")}
+            </span>
+          ) : null}
         </div>
         <div className="topbar-actions">
           <button type="button" onClick={() => loadDashboard(true)} disabled={isLoading}>
@@ -454,16 +460,6 @@ export default function Dashboard({ authReady, user }) {
           )}
         </div>
       </header>
-
-      {payload ? (
-        <section className="status-strip">
-          <span>
-            <Clock3 size={15} />
-            {new Date(payload.collectedAt).toLocaleString("ko-KR")}
-          </span>
-          <span>{payload.sourceUrl}</span>
-        </section>
-      ) : null}
 
       {error ? <div className="error-box">{error}</div> : null}
       {payload?.warnings?.length ? (
