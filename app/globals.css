@@ -1288,3 +1288,30 @@ button { cursor: pointer; }
     display: none;
   }
 }
+
+
+/* Minimal metadata band */
+.status-strip {
+  min-height: 0;
+  gap: 0;
+  padding: 5px 18px;
+  font-size: 12px;
+}
+
+.status-strip span {
+  line-height: 1.2;
+}
+
+.column-head {
+  margin-bottom: 12px;
+}
+
+.candidate-group-head {
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .status-strip {
+    padding: 5px 14px;
+  }
+}
