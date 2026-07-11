@@ -1315,3 +1315,34 @@ button { cursor: pointer; }
     padding: 5px 14px;
   }
 }
+
+
+/* Inline collection timestamp */
+.dashboard-title-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.collection-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .dashboard-title-line {
+    gap: 5px 8px;
+  }
+
+  .collection-time {
+    flex-basis: 100%;
+    font-size: 11px;
+  }
+}
