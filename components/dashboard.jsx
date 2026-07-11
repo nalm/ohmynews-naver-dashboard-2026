@@ -282,7 +282,6 @@ function CandidateGroup({ tone, title, caption, articles, onSelect }) {
           <span>{title}</span>
           <small>{caption}</small>
         </div>
-        <strong>{articles.length}</strong>
       </div>
       {articles.length ? (
         <div className="candidate-list">
@@ -463,7 +462,6 @@ export default function Dashboard({ authReady, user }) {
             {new Date(payload.collectedAt).toLocaleString("ko-KR")}
           </span>
           <span>{payload.sourceUrl}</span>
-          {user?.email ? <span>{user.email}</span> : null}
         </section>
       ) : null}
 
@@ -483,7 +481,6 @@ export default function Dashboard({ authReady, user }) {
               <p className="eyebrow">현재 편집면</p>
               <h2>오마이뉴스 모바일 메인</h2>
             </div>
-            <span>{payload?.mainArticles?.length || 0}건</span>
           </div>
           <div className="phone-frame refreshed-phone">
             {isLoading && !payload ? (
@@ -521,7 +518,6 @@ export default function Dashboard({ authReady, user }) {
               <p className="eyebrow">새로고침 기준</p>
               <h2>네이버 VIEW Top 50</h2>
             </div>
-            <span>{payload?.rankingArticleCount ? payload.rankingArticleCount + "건 수신" : "언론사별 기사 랭킹"}</span>
           </div>
           <div className="ranking-column-labels">
             <span>순위</span>
@@ -529,7 +525,7 @@ export default function Dashboard({ authReady, user }) {
             <span>피크 시간</span>
             <span>최신</span>
             <span>최고</span>
-            <span>누적</span>
+            <span>8시간 누적</span>
             <span>상태</span>
             <span>추이</span>
           </div>
@@ -546,7 +542,6 @@ export default function Dashboard({ authReady, user }) {
               <p className="eyebrow">편집 판단</p>
               <h2>노출 조정 후보</h2>
             </div>
-            <span>각 5건</span>
           </div>
           <CandidateGroup
             tone="raise"
