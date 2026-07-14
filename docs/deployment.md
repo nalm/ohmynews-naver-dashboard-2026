@@ -21,7 +21,8 @@ AUTH_URL=https://ohmynews-naver-dashboard-2026.vercel.app
 AUTH_SECRET=<long random secret>
 GOOGLE_CLIENT_ID=<google oauth client id>
 GOOGLE_CLIENT_SECRET=<google oauth client secret>
-ALLOWED_EMAILS=editor1@gmail.com,editor2@gmail.com
+# Administrator Google accounts only. Manage ordinary users from /admin/users.
+ALLOWED_EMAILS=admin@example.com
 NAVER_CLIENT_ID=<naver mediahub client id>
 NAVER_CLIENT_SECRET=<naver mediahub client secret>
 NAVER_API_HOST=https://api-gw.media.naver.com
@@ -50,3 +51,7 @@ Vercel Hobby cannot run `*/30 * * * *` Cron. Use one of these paths:
 ```bash
 vercel deploy --prod --yes --scope nalms-projects --no-color
 ```
+
+## User Access Management
+
+Keep only administrator Google accounts in `ALLOWED_EMAILS`. After an administrator signs in, use `/admin/users` to add ordinary dashboard users or deactivate them. A deactivated user loses access on the next page or dashboard API request; administrators remain controlled solely by the environment variable.

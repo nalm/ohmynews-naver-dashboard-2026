@@ -1,4 +1,4 @@
-﻿import { auth, isAuthConfigured, isAuthRequired } from "../../../lib/auth";
+﻿import { auth, hasDashboardAccess, isAuthConfigured, isAuthRequired } from "../../../lib/auth";
 import { buildDashboardPayload } from "../../../lib/collector";
 import { loadLatestSnapshot } from "../../../lib/store";
 
@@ -14,8 +14,9 @@ export async function GET(request) {
 
   if (authReady) {
     const session = await auth();
-    if (!session) {
-      return Response.json({ error: "unauthorized" }, { status: 401 });
+    if (!session) return Response.json({ error: "unauthorized" }, { status: 401 });
+    if (!(await hasDashboardAccess(session.user?.email))) {
+      return Response.json({ error: "access_revoked" }, { status: 403 });
     }
   }
 
@@ -24,9 +25,7 @@ export async function GET(request) {
 
   if (!refresh) {
     const latest = await loadLatestSnapshot();
-    if (latest) {
-      return Response.json(latest);
-    }
+    if (latest) return Response.json(latest);
   }
 
   const payload = await buildDashboardPayload({ persist: refresh });

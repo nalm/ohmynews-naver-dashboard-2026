@@ -16,7 +16,7 @@ The dashboard extracts articles from the first article on the mobile page throug
 
 ## Authentication
 
-The app uses Google login. Only Gmail addresses listed in `ALLOWED_EMAILS` can enter.
+The app uses Google login. `ALLOWED_EMAILS` contains administrators only; active regular users are read from Postgres and managed at `/admin/users`.
 
 Naver API credentials are never sent to the browser. They are stored as Vercel environment variables and used only inside server routes.
 
@@ -69,4 +69,3 @@ Use Vercel with:
 - Vercel environment variables
 - Vercel Cron
 - Neon or Supabase Postgres
-

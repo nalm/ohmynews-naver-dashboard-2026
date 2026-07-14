@@ -10,7 +10,7 @@ Internal editorial dashboard for comparing the OhmyNews mobile front layout with
 - Pulls Naver publisher article rankings with `criterion=VIEW`.
 - Calculates recent 3-hour view trend and recommendation scores.
 - Shows a mobile-front-like layout, article detail panel, and top recommendation queue.
-- Uses Google login with an explicit Gmail allowlist.
+- Uses Google login: ALLOWED_EMAILS is administrator-only, while regular users are stored in Postgres.
 
 ## Local Setup
 
@@ -28,7 +28,7 @@ Without Naver credentials or a database, the app runs in demo mode with realisti
 - `AUTH_SECRET`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
-- `ALLOWED_EMAILS`
+- `ALLOWED_EMAILS` (administrator email addresses only)
 - `NAVER_CLIENT_ID`
 - `NAVER_CLIENT_SECRET`
 - `CRON_SECRET`
@@ -45,7 +45,7 @@ Without Naver credentials or a database, the app runs in demo mode with realisti
 
 ## Database
 
-The MVP stores each collection run as one JSON snapshot. See `docs/database.sql`.
+The app stores each collection run as one JSON snapshot and regular dashboard access users in Postgres. `ALLOWED_EMAILS` remains the administrator-only allowlist; administrators add or deactivate regular users at `/admin/users`. See `docs/database.sql`.
 
 ## Important API Assumptions
 
@@ -53,4 +53,3 @@ The MVP stores each collection run as one JSON snapshot. See `docs/database.sql`
 - Ranking uses `VIEW` only.
 - Articles outside the Naver top-50 ranking are shown as `랭킹 밖`.
 - Mobile-front-external candidates are limited to the recommendation top 10 by default.
-

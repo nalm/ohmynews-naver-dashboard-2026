@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  Users,
   X,
   TrendingDown,
   TrendingUp
@@ -401,7 +402,7 @@ function ArticleDetailLayer({ article, onClose }) {
   );
 }
 
-export default function Dashboard({ authReady, user }) {
+export default function Dashboard({ authReady, isAdmin, user }) {
   const [payload, setPayload] = useState(null);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -447,6 +448,12 @@ export default function Dashboard({ authReady, user }) {
             {isLoading ? <Loader2 className="spin" size={17} /> : <RefreshCw size={17} />}
             새로고침
           </button>
+          {authReady && isAdmin ? (
+            <a href="/admin/users">
+              <Users size={17} />
+              사용자 관리
+            </a>
+          ) : null}
           {authReady ? (
             <a href="/api/auth/signout">
               <LogOut size={17} />
